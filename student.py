@@ -92,7 +92,7 @@ def get_students(db: Session = Depends(get_db)):
 # -----------------------------
 # READ Student by ID
 # -----------------------------
-@app.get("/students/{student_id}", response_model=StudentResponse)
+@app.get("/students{student_id}", response_model=StudentResponse)
 def get_student(student_id: int, db: Session = Depends(get_db)):
 
     student = db.query(Student).filter(Student.id == student_id).first()
@@ -105,7 +105,7 @@ def get_student(student_id: int, db: Session = Depends(get_db)):
 # -----------------------------
 # UPDATE Student
 # -----------------------------
-@app.put("/students/{student_id}", response_model=StudentResponse)
+@app.put("/students{student_id}", response_model=StudentResponse)
 def update_student(student_id: int, data: StudentCreate, db: Session = Depends(get_db)):
 
     student = db.query(Student).filter(Student.id == student_id).first()
@@ -126,7 +126,7 @@ def update_student(student_id: int, data: StudentCreate, db: Session = Depends(g
 # -----------------------------
 # DELETE Student
 # -----------------------------
-@app.delete("/students/{student_id}")
+@app.delete("/students{student_id}")
 def delete_student(student_id: int, db: Session = Depends(get_db)):
 
     student = db.query(Student).filter(Student.id == student_id).first()
@@ -138,4 +138,5 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Student deleted successfully"}
+
 
