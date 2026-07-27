@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
@@ -13,7 +13,12 @@ engine = create_engine(
     connect_args={"check_same_thread": False}
 )
 
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=False,
+    autocommit=False
+)
+
 Base = declarative_base()
 
 # -----------------------------
@@ -31,7 +36,7 @@ class Student(Base):
 Base.metadata.create_all(bind=engine)
 
 # -----------------------------
-# Pydantic Model
+# Pydantic Models
 # -----------------------------
 class StudentCreate(BaseModel):
     name: str
@@ -39,18 +44,20 @@ class StudentCreate(BaseModel):
     course: str
     email: str
 
+
 class StudentResponse(StudentCreate):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # -----------------------------
 # FastAPI App
 # -----------------------------
 app = FastAPI(title="Student CRUD API")
 
+# -----------------------------
 # Database Session
+# -----------------------------
 def get_db():
     db = SessionLocal()
     try:
@@ -62,12 +69,20 @@ def get_db():
 # CREATE Student
 # -----------------------------
 @app.post("/students", response_model=StudentResponse)
-def create_student(student: StudentCreate, db: Session = Depends(get_db)):
+def create_student(
+    student: StudentCreate,
+    db: Session = Depends(get_db)
+):
 
-    existing = db.query(Student).filter(Student.email == student.email).first()
+    existing = db.query(Student).filter(
+        Student.email == student.email
+    ).first()
 
     if existing:
-        raise HTTPException(status_code=400, detail="Email already exists")
+        raise HTTPException(
+            status_code=400,
+            detail="Email already exists"
+        )
 
     new_student = Student(
         name=student.name,
@@ -83,35 +98,52 @@ def create_student(student: StudentCreate, db: Session = Depends(get_db)):
     return new_student
 
 # -----------------------------
-# READ All Students
+# READ ALL
 # -----------------------------
 @app.get("/students", response_model=list[StudentResponse])
 def get_students(db: Session = Depends(get_db)):
     return db.query(Student).all()
 
 # -----------------------------
-# READ Student by ID
+# READ BY ID
 # -----------------------------
 @app.get("/students{student_id}", response_model=StudentResponse)
-def get_student(student_id: int, db: Session = Depends(get_db)):
+def get_student(
+    student_id: int,
+    db: Session = Depends(get_db)
+):
 
-    student = db.query(Student).filter(Student.id == student_id).first()
+    student = db.query(Student).filter(
+        Student.id == student_id
+    ).first()
 
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found"
+        )
 
     return student
 
 # -----------------------------
-# UPDATE Student
+# UPDATE
 # -----------------------------
 @app.put("/students{student_id}", response_model=StudentResponse)
-def update_student(student_id: int, data: StudentCreate, db: Session = Depends(get_db)):
+def update_student(
+    student_id: int,
+    data: StudentCreate,
+    db: Session = Depends(get_db)
+):
 
-    student = db.query(Student).filter(Student.id == student_id).first()
+    student = db.query(Student).filter(
+        Student.id == student_id
+    ).first()
 
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found"
+        )
 
     student.name = data.name
     student.age = data.age
@@ -124,19 +156,27 @@ def update_student(student_id: int, data: StudentCreate, db: Session = Depends(g
     return student
 
 # -----------------------------
-# DELETE Student
+# DELETE
 # -----------------------------
 @app.delete("/students{student_id}")
-def delete_student(student_id: int, db: Session = Depends(get_db)):
+def delete_student(
+    student_id: int,
+    db: Session = Depends(get_db)
+):
 
-    student = db.query(Student).filter(Student.id == student_id).first()
+    student = db.query(Student).filter(
+        Student.id == student_id
+    ).first()
 
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found"
+        )
 
     db.delete(student)
     db.commit()
 
-    return {"message": "Student deleted successfully"}
-
-
+    return {
+        "message": "Student deleted successfully"
+    }
